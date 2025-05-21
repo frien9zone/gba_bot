@@ -1,0 +1,7 @@
+# Игнорировать .env файл
+.env
+*.db
+*.sql
+/backups/
+__pycache__/
+venv/
