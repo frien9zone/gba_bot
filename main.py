@@ -223,7 +223,7 @@ async def add_trailer_type(update: Update, context: CallbackContext) -> int:
     
     # Всегда спрашиваем длину (независимо от типа трейлера)
     await update.message.reply_text(
-        "💼Step 7/9: Enter trailer *length* (можно ввести любое число):",
+        "💼Step 7/9: Enter trailer *length*:",
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["Back"]], resize_keyboard=True)
     )
@@ -248,15 +248,15 @@ async def add_trailer_length(update: Update, context: CallbackContext) -> int:
     try:
         length = int(update.message.text)
         if length < 0:
-            await update.message.reply_text("Длина не может быть отрицательной. Введите положительное число:")
+            await update.message.reply_text("The length cannot be negative. Enter a positive number:")
             return ADD_TRAILER_LENGTH
         context.user_data['new_driver']['length'] = length
     except ValueError:
-        await update.message.reply_text("Пожалуйста, введите целое число для длины трейлера:")
+        await update.message.reply_text("Please enter a positive number for the trailer length:")
         return ADD_TRAILER_LENGTH
     
     await update.message.reply_text(
-        "💼Step 8/9: Does the trailer have *bee nets*? (можно ввести любой текст):",
+        "💼Step 8/9: Does the trailer have *bee nets*?:",
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["🔙 Back"]], resize_keyboard=True)
     )
@@ -282,7 +282,7 @@ async def add_trailer_bee_nets(update: Update, context: CallbackContext) -> int:
     context.user_data['new_driver']['bee_nets'] = update.message.text
     
     await update.message.reply_text(
-        "💼Step 9/9: Enter *special equipment* (можно ввести любой текст или 'none'):",
+        "💼Step 9/9: Enter *special equipment*:",
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["🔙 Back"]], resize_keyboard=True)
     )
