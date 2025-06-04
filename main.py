@@ -203,9 +203,10 @@ async def add_driver_day(update: Update, context: CallbackContext) -> int:
     return ADD_TRAILER_TYPE
 
 # Обработка типа трейлера
+# Обработка типа трейлера (принимаем любой текст)
 async def add_trailer_type(update: Update, context: CallbackContext) -> int:
     if update.message.text == "🔙 Back":
-        await driver_information(update, context)  # Возврат в driver_information
+        await driver_information(update, context)
         return ConversationHandler.END
     elif update.message.text == "👣 1 step back":
         await update.message.reply_text(
@@ -217,33 +218,21 @@ async def add_trailer_type(update: Update, context: CallbackContext) -> int:
         )
         return ADD_DRIVER_DAY
     
-    trailer_type = update.message.text.lower()
-    if trailer_type not in ['flatbed', 'stepdeck', 'van', 'reefer']:
-        await update.message.reply_text("Invalid type! Choose from: flatbed, stepdeck, van, reefer")
-        return ADD_TRAILER_TYPE
+    # Принимаем ЛЮБОЙ текст как тип трейлера
+    context.user_data['new_driver']['trailer_type'] = update.message.text
     
-    context.user_data['new_driver']['trailer_type'] = trailer_type
-    
-    if trailer_type in ['flatbed', 'stepdeck']:
-        await update.message.reply_text(
-            "💼Step 7/9: Enter trailer *length* (48 or 53):",
-            parse_mode='Markdown',
-            reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["Back"]], resize_keyboard=True)
-        )
-        return ADD_TRAILER_LENGTH
-    else:
-        context.user_data['new_driver']['length'] = None
-        await update.message.reply_text(
-            "💼Step 8/9: Does the trailer have *bee nets*? (yes/no):",
-            parse_mode='Markdown',
-            reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["🔙 Back"]], resize_keyboard=True)
-        )
-        return ADD_TRAILER_BEE_NETS
+    # Всегда спрашиваем длину (независимо от типа трейлера)
+    await update.message.reply_text(
+        "💼Step 7/9: Enter trailer *length* (можно ввести любое число):",
+        parse_mode='Markdown',
+        reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["Back"]], resize_keyboard=True)
+    )
+    return ADD_TRAILER_LENGTH
 
-# Обработка длины трейлера
+# Обработка длины трейлера (принимаем любое число)
 async def add_trailer_length(update: Update, context: CallbackContext) -> int:
     if update.message.text == "🔙 Back":
-        await driver_information(update, context)  # Возврат в driver_information
+        await driver_information(update, context)
         return ConversationHandler.END
     elif update.message.text == "👣 1 step back":
         await update.message.reply_text(
@@ -255,48 +244,45 @@ async def add_trailer_length(update: Update, context: CallbackContext) -> int:
         )
         return ADD_TRAILER_TYPE
     
-    length = update.message.text
-    if length not in ['48', '53']:
-        await update.message.reply_text("Invalid length! Choose 48 or 53.")
+    # Проверяем, что введено число (положительное)
+    try:
+        length = int(update.message.text)
+        if length < 0:
+            await update.message.reply_text("Длина не может быть отрицательной. Введите положительное число:")
+            return ADD_TRAILER_LENGTH
+        context.user_data['new_driver']['length'] = length
+    except ValueError:
+        await update.message.reply_text("Пожалуйста, введите целое число для длины трейлера:")
         return ADD_TRAILER_LENGTH
     
-    context.user_data['new_driver']['length'] = int(length)
     await update.message.reply_text(
-        "💼Step 8/9: Does the trailer have *bee nets*? (yes/no):",
+        "💼Step 8/9: Does the trailer have *bee nets*? (можно ввести любой текст):",
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["🔙 Back"]], resize_keyboard=True)
     )
     return ADD_TRAILER_BEE_NETS
 
-# Обработка bee nets
+# Обработка bee nets (принимаем любой текст)
 async def add_trailer_bee_nets(update: Update, context: CallbackContext) -> int:
     if update.message.text == "🔙 Back":
-        await driver_information(update, context)  # Возврат в driver_information
+        await driver_information(update, context)
         return ConversationHandler.END
     elif update.message.text == "👣 1 step back":
-        if context.user_data['new_driver']['trailer_type'] in ['flatbed', 'stepdeck']:
-            await update.message.reply_text(
-                "💼Step 7/9: Enter trailer *length* (current: {}):".format(
-                    context.user_data['new_driver'].get('length', 'not set')
-                ),
-                parse_mode='Markdown',
-                reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["🔙 Back"]], resize_keyboard=True)
-            )
-            return ADD_TRAILER_LENGTH
-        else:
-            await update.message.reply_text(
-                "💼Step 6/9: Enter *trailer type* (current: {}):".format(
-                    context.user_data['new_driver'].get('trailer_type', 'not set')
-                ),
-                parse_mode='Markdown',
-                reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["🔙 Back"]], resize_keyboard=True)
-            )
-            return ADD_TRAILER_TYPE
+        # Всегда возвращаем к длине, так как она запрашивается для всех типов
+        await update.message.reply_text(
+            "💼Step 7/9: Enter trailer *length* (current: {}):".format(
+                context.user_data['new_driver'].get('length', 'not set')
+            ),
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["🔙 Back"]], resize_keyboard=True)
+        )
+        return ADD_TRAILER_LENGTH
     
-    # Убрана проверка на yes/no
+    # Принимаем ЛЮБОЙ текст для bee nets
     context.user_data['new_driver']['bee_nets'] = update.message.text
+    
     await update.message.reply_text(
-        "💼Step 9/9: Enter *special equipment* (or 'none'):",
+        "💼Step 9/9: Enter *special equipment* (можно ввести любой текст или 'none'):",
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardMarkup([["👣 1 step back"], ["🔙 Back"]], resize_keyboard=True)
     )
@@ -544,14 +530,22 @@ async def by_name_information(update: Update, context: CallbackContext) -> None:
     
     connection = get_db()
     cursor = connection.cursor(dictionary=True)
-    query = "SELECT driver_id, name FROM driver_info WHERE name LIKE %s ORDER BY name"
-    cursor.execute(query, (f"{search_text}%",))
+    
+    # Измененный запрос - ищем подстроку в любом месте имени
+    query = """
+        SELECT driver_id, name 
+        FROM driver_info 
+        WHERE name LIKE %s 
+        ORDER BY name
+    """
+    cursor.execute(query, (f"%{search_text}%",))  # Добавляем % с обеих сторон
+    
     drivers = cursor.fetchall()
     connection.close()
     
     if not drivers:
         await update.message.reply_text(
-            f"There are no drivers with name [{search_text}]\nPlease try again",
+            f"There are no drivers with name containing [{search_text}]\nPlease try again",
             reply_markup=ReplyKeyboardMarkup([["🔙 Back"]], resize_keyboard=True)
         )
         return
@@ -668,6 +662,9 @@ async def all_driver_information(update: Update, context: CallbackContext, drive
         await update.callback_query.answer("Driver not found!")
         return
     
+    # Форматирование длины трейлера
+    length_display = str(driver['length']) + " ft" if driver.get('length') is not None else "Not specified"
+    
     message = (
         f"👨🏻‍💼 *Driver Information*\n"
         f"🆔 *ID:* {driver['driver_id']}\n\n"
@@ -677,9 +674,9 @@ async def all_driver_information(update: Update, context: CallbackContext, drive
         f"🗺️ *Location:* {driver['current_location'] or 'Not specified'}\n"
         f"📅 *Available:* {driver['current_day_of_week'] or 'Not specified'}\n\n"
         f"🚚 *Trailer information*\n\n"
-        f"🔧 *Trailer Type:* {driver['trailer_type'].capitalize() or 'Not specified'}\n"
-        f"📏 *Length:* {driver['length'] or 'Not specified'} ft\n"
-        f"🐝 *Bee Nets:* {'Yes' if driver.get('bee_nets') == 'yes' else 'No' if driver.get('bee_nets') else 'Not specified'}\n"
+        f"🔧 *Trailer Type:* {driver['trailer_type'].capitalize() if driver.get('trailer_type') else 'Not specified'}\n"
+        f"📏 *Length:* {length_display}\n"
+        f"🐝 *Bee Nets:* {driver.get('bee_nets') or 'Not specified'}\n"  # Показываем как есть
         f"🛠️ *Special Equipment:* {driver.get('special_equipment') or 'Not specified'}\n\n"
         f"🔢 *MC Number:* {driver.get('MC') or 'Not specified'}"
     )
