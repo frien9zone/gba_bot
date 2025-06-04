@@ -14,7 +14,7 @@ CREATE TABLE test_drivers.trailer_info (
     length INT,
     bee_nets TEXT,
     special_equipment TEXT,
-    MC TEXT,
+    MC INT,
 
     FOREIGN KEY (driver_id) REFERENCES test_drivers.driver_info(driver_id)
         ON DELETE CASCADE
