@@ -330,7 +330,7 @@ async def add_trailer_mc(update: Update, context: CallbackContext) -> int:
     
     mc = update.message.text
     if mc.lower() != 'skip':
-        context.user_data['new_driver']['mc'] = int(mc) if mc.isdigit() else None
+        context.user_data['new_driver']['mc'] = mc
     
     try:
         connection = get_db()
@@ -829,7 +829,7 @@ async def save_edit(update: Update, context: CallbackContext):
         cursor = connection.cursor()
         
         # Для числовых полей проверяем корректность значения
-        if column in ['length', 'MC']:
+        if column == 'length':
             try:
                 new_value = int(new_value)
             except ValueError:
